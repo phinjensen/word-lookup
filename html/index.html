@@ -1,186 +1,191 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
     <title>Word Lookup</title>
-<style>
-html {
-  font-size: 14px;
-  font-family: "IBM Plex Sans", "DejaVu Sans", sans-serif;
-}
+    <style>
+      html {
+        font-size: 14px;
+        font-family: "IBM Plex Sans", "DejaVu Sans", sans-serif;
+      }
 
-body {
-  height: 100vh;
-  margin: 0;
-  display: flex;
-  flex-flow: column;
-}
+      body {
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        flex-flow: column;
+      }
 
-#page-header {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #111111;
-  width: 100%;
-  flex: 0 0 48px;
-}
+      #page-header {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #111111;
+        width: 100%;
+        flex: 0 0 48px;
+      }
 
-#page-header > * {
-  margin-left: 8px;
-}
+      #page-header > * {
+        margin-left: 8px;
+      }
 
-h2 {
-  font-size: 1.3rem;
-}
+      h2 {
+        font-size: 1.3rem;
+      }
 
-p {
-  line-height: 1.2;
-}
+      p {
+        line-height: 1.2;
+      }
 
-code {
-  line-height: 1.2;
-}
+      code {
+        line-height: 1.2;
+      }
 
-th, td {
-  padding: 8px;
-}
+      th,
+      td {
+        padding: 8px;
+      }
 
-#content {
-  flex: 0 1 auto;
-  display: flex;
-  flex-flow: row;
-  overflow: auto;
-  height: 100%;
-}
+      #content {
+        flex: 0 1 auto;
+        display: flex;
+        flex-flow: row;
+        overflow: auto;
+        height: 100%;
+      }
 
-#sidebar {
-  flex: 0 0 370px;
-  border-right: 1px solid #111111;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  padding: 8px;
-  box-sizing: border-box;
-  align-content: flex-start;
-  overflow: auto;
-}
+      #sidebar {
+        flex: 0 0 370px;
+        border-right: 1px solid #111111;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 8px;
+        box-sizing: border-box;
+        align-content: flex-start;
+        overflow: auto;
+      }
 
-#search-options {
-  width: 100%;
-}
+      #search-options {
+        width: 100%;
+      }
 
-.search-option {
-  width: 100%;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+      .search-option {
+        width: 100%;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
 
-.search-option > label {
-  text-align: right;
-  width: 35%;
-}
+      .search-option > label {
+        text-align: right;
+        width: 35%;
+      }
 
-#results {
-  overflow: auto;
-  width: 100%;
-}
+      #results {
+        overflow: auto;
+        width: 100%;
+      }
 
-#results > table {
-  width: 100%;
-  border-spacing: 0;
-}
+      #results > table {
+        width: 100%;
+        border-spacing: 0;
+      }
 
-#results > table tr:nth-child(even) {
-  background-color: #eae9e9;
-}
+      #results > table tr:nth-child(even) {
+        background-color: #eae9e9;
+      }
 
-#results * {
-  text-align: left;
-}
+      #results * {
+        text-align: left;
+      }
 
-#regex-reference td:nth-child(1) {
-  padding-left: 0;
-}
+      #regex-reference td:nth-child(1) {
+        padding-left: 0;
+      }
 
-.window {
-  position: absolute;
-  top: 139px;
-  left: 379px;
-  border: 1px solid black;
-  border-radius: 4px;
-  background-color: white;
-  display: none;
-}
+      .window {
+        position: absolute;
+        top: 139px;
+        left: 379px;
+        border: 1px solid black;
+        border-radius: 4px;
+        background-color: white;
+        display: none;
+      }
 
-.window header {
-  cursor: default;
-  width: 100%;
-  text-align: center;
-  user-select: none;
-  padding: 12px 0;
-  border-bottom: 1px solid black;
-}
+      .window header {
+        cursor: default;
+        width: 100%;
+        text-align: center;
+        user-select: none;
+        padding: 12px 0;
+        border-bottom: 1px solid black;
+      }
 
-.window header a {
-  position: absolute;
-  top: 0;
-  right: 0;
-  text-decoration: none;
-  color: black;
-  padding: 12px;
-}
+      .window header a {
+        position: absolute;
+        top: 0;
+        right: 0;
+        text-decoration: none;
+        color: black;
+        padding: 12px;
+      }
 
-.window .content {
-  padding: 4px;
-}
+      .window .content {
+        padding: 4px;
+      }
 
-#ipa-input {
-  width: 404px
-}
+      #ipa-input {
+        width: 404px;
+      }
 
-#ipa-input #ipa-buttons {
-  display: flex;
-  flex-flow: row wrap;
-  align-content: flex-start;
-}
+      #ipa-input #ipa-buttons {
+        display: flex;
+        flex-flow: row wrap;
+        align-content: flex-start;
+      }
 
-#ipa-input button {
-  box-sizing: border-box;
-  border: 1px solid lightgray;
-  border-radius: 4px;
-  width: 32px;
-  height: 32px;
-  padding: 4px;
-  margin: 2px;
-}
+      #ipa-input button {
+        box-sizing: border-box;
+        border: 1px solid lightgray;
+        border-radius: 4px;
+        width: 32px;
+        height: 32px;
+        padding: 4px;
+        margin: 2px;
+      }
 
-#import-data {
-  width: 420px;
-  left: 50%;
-  top: 50%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-}
+      #import-data {
+        width: 420px;
+        left: 50%;
+        top: 50%;
+        -webkit-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+      }
 
-#import-data .content {
-  padding-top: 0;
-  padding: 8px;
-}
+      #import-data .content {
+        padding-top: 0;
+        padding: 8px;
+      }
 
-#message {
-  left: 50%;
-  top: 50%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-}
-</style>
+      #message {
+        left: 50%;
+        top: 50%;
+        -webkit-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+      }
+    </style>
   </head>
   <body>
     <header id="page-header">
-      <button class="open-window" data-window="import-data" id="open-import">Import Data</button>
+      <button class="open-window" data-window="import-data" id="open-import">
+        Import Data
+      </button>
       <button id="export-data">Export Results</button>
-      <button class="open-window" data-window="ipa-input" id="open-ipa">IPA Character Input</button>
+      <button class="open-window" data-window="ipa-input" id="open-ipa">
+        IPA Character Input
+      </button>
     </header>
     <div id="content">
       <section id="sidebar">
@@ -189,37 +194,45 @@ th, td {
           <h2>Search Options</h2>
           <div class="search-option">
             <label for="orthography">Orthography</label>
-            <input type="text" required id="orthography" name="orthography">
+            <input type="text" required id="orthography" name="orthography" />
           </div>
           <div class="search-option">
             <label for="transcription">Transcription</label>
-            <input type="text" required id="transcription" name="transcription">
+            <input
+              type="text"
+              required
+              id="transcription"
+              name="transcription"
+            />
           </div>
           <div class="search-option">
             <label for="syllables"># of syllables</label>
-            <input type="text" id="syllables" name="syllables">
+            <input type="text" id="syllables" name="syllables" />
           </div>
           <div class="search-option">
             <label for="stress">Stress pattern</label>
-            <input type="text" id="stress" name="stress">
+            <input type="text" id="stress" name="stress" />
           </div>
           <div class="search-option">
             <label for="minfrequency">Min. frequency</label>
-            <input type="text" id="minfrequency" name="minfrequency">
+            <input type="text" id="minfrequency" name="minfrequency" />
           </div>
           <div class="search-option">
             <label for="maxfrequency">Max. frequency</label>
-            <input type="text" id="maxfrequency" name="maxfrequency">
+            <input type="text" id="maxfrequency" name="maxfrequency" />
           </div>
           <div class="search-option">
             <label for="pos">Part of speech</label>
-            <input type="text" id="pos" name="pos">
+            <input type="text" id="pos" name="pos" />
           </div>
-          <button id="search-button">Search</Button>
+          <button id="search-button">Search</button>
         </div>
         <div id="regex-reference">
           <h2>Regular Expressions</h2>
-          <p>Regular expressions can be used in the orthography, transcription, and stress fields.</p>
+          <p>
+            Regular expressions can be used in the orthography, transcription,
+            and stress fields.
+          </p>
           <table>
             <tr>
               <td><code>^</code></td>
@@ -235,11 +248,15 @@ th, td {
             </tr>
             <tr>
               <td><code>a*</code></td>
-              <td>match a sequence of zero or more of the character <code>a</code></td>
+              <td>
+                match a sequence of zero or more of the character <code>a</code>
+              </td>
             </tr>
             <tr>
               <td><code>a+</code></td>
-              <td>match a sequence of one or more of the character <code>a</code></td>
+              <td>
+                match a sequence of one or more of the character <code>a</code>
+              </td>
             </tr>
             <tr>
               <td><code>a?</code></td>
@@ -247,11 +264,16 @@ th, td {
             </tr>
             <tr>
               <td><code>de|abc</code></td>
-              <td>match either the sequence <code>de</code> <b>or</b> the sequecence <code>abc</code></td>
+              <td>
+                match either the sequence <code>de</code> <b>or</b> the
+                sequecence <code>abc</code>
+              </td>
             </tr>
             <tr>
               <td><code>(abc)*</code></td>
-              <td>match zero or more instances of the sequence <code>abc</code></td>
+              <td>
+                match zero or more instances of the sequence <code>abc</code>
+              </td>
             </tr>
           </table>
         </div>
@@ -270,9 +292,9 @@ th, td {
           </thead>
           <tbody>
             <tr>
-              <td>
-                No results.
-              <td>
+              <td>No results.</td>
+
+              <td></td>
             </tr>
           </tbody>
         </table>
@@ -372,11 +394,18 @@ th, td {
         </div>
       </header>
       <div class="content">
-        <p>To update the database, make changes to the original file and upload the full file here:</p>
+        <p>
+          To update the database, make changes to the original file and upload
+          the full file here:
+        </p>
         <input autocomplete="off" type="file" id="upload" />
         <p>Also enter your password:</p>
         <input autocomplete="off" type="text" id="password" />
-        <p>The file should be tab-separated values (TSV) with column headers defining the following columns on the first line or the columns in the following order:</p>
+        <p>
+          The file should be tab-separated values (TSV) with column headers
+          defining the following columns on the first line or the columns in the
+          following order:
+        </p>
         <ol>
           <li>spelling</li>
           <li>transcription</li>
@@ -389,7 +418,7 @@ th, td {
           <li>hal_frequency</li>
           <li>hal_frequency_log</li>
         </ol>
-        <button autocomplete="off" id="import">Import data</Button>
+        <button autocomplete="off" id="import">Import data</button>
       </div>
     </div>
     <div class="window" id="message">
@@ -399,11 +428,10 @@ th, td {
           <a href="#" class="close-button">X</a>
         </div>
       </header>
-      <div class="content">
-      </div>
+      <div class="content"></div>
     </div>
     <script>
-      window.onload = function() {
+      window.onload = function () {
         let queryData = [];
         let fields = [
           "spelling",
@@ -415,9 +443,9 @@ th, td {
           "num_morphemes",
           "part_of_speech",
           "hal_frequency",
-          "hal_frequency_log"
+          "hal_frequency_log",
         ];
-        
+
         // Windows
         function startDragging(event) {
           this.parentNode.dataset.dragging = "true";
@@ -426,130 +454,180 @@ th, td {
           delete this.parentNode.dataset.dragging;
         }
 
-        document.querySelectorAll(".window").forEach(function(element) {
+        document.querySelectorAll(".window").forEach(function (element) {
           let header = element.querySelector("header");
-          header.addEventListener('mousedown', startDragging);
-          header.addEventListener('mouseup', stopDragging);
+          header.addEventListener("mousedown", startDragging);
+          header.addEventListener("mouseup", stopDragging);
           element.style.top = window.getComputedStyle(element).top;
           element.style.left = window.getComputedStyle(element).left;
         });
 
-        document.addEventListener('mousemove', function(event) {
-          document.querySelectorAll(".window").forEach(function(element) {
-            if (element.dataset.dragging) {
-              element.style.top = String(element.offsetTop + event.movementY) + "px";
-              element.style.left = String(element.offsetLeft + event.movementX) + "px";
-            }
-          });
-        }, true);
+        document.addEventListener(
+          "mousemove",
+          function (event) {
+            document.querySelectorAll(".window").forEach(function (element) {
+              if (element.dataset.dragging) {
+                element.style.top =
+                  String(element.offsetTop + event.movementY) + "px";
+                element.style.left =
+                  String(element.offsetLeft + event.movementX) + "px";
+              }
+            });
+          },
+          true
+        );
 
-        document.querySelectorAll(".open-window").forEach(function(element) {
-          element.addEventListener('click', function(event) {
-            document.getElementById(element.dataset.window).style.display = 'block';
+        document.querySelectorAll(".open-window").forEach(function (element) {
+          element.addEventListener("click", function (event) {
+            document.getElementById(element.dataset.window).style.display =
+              "block";
           });
         });
 
-        document.querySelectorAll(".window").forEach(function(element) {
-          element.querySelector(".close-button").addEventListener('click', function(event) {
-            element.style.display = 'none';
-          });
+        document.querySelectorAll(".window").forEach(function (element) {
+          element
+            .querySelector(".close-button")
+            .addEventListener("click", function (event) {
+              element.style.display = "none";
+            });
         });
 
         // IPA Input
         let lastFocused = document.querySelector("#orthography");
-        document.querySelectorAll(".search-option input").forEach(function(input) {
-          input.addEventListener('focus', function(event) {
-            lastFocused = event.target;
+        document
+          .querySelectorAll(".search-option input")
+          .forEach(function (input) {
+            input.addEventListener("focus", function (event) {
+              lastFocused = event.target;
+            });
           });
-        });
 
-        document.querySelector("#ipa-buttons").addEventListener('click', function(event) {
-          if (event.target.nodeName === "BUTTON") {
-            lastFocused.value += event.target.textContent;
-            lastFocused.focus();
-          }
-        });
-
-        // Search
-        document.querySelector("#search-button").addEventListener('click', function(event) {
-          let query = [];
-          document.querySelectorAll(".search-option input").forEach(function(input) {
-            query.push(input.id + '=' + input.value);
-          });
-          fetch(
-            "http://localhost:7878/search?" + encodeURI(query.join("&"))
-          ).then(function(response) {
-            if (response.ok) {
-              response.json().then(function(data) {
-                queryData = data.words;
-                let rows = [];
-                if (data.success) {
-                  data.words.forEach(function(word) {
-                    let row = document.createElement("tr");
-                    ["spelling", "transcription", "stress", "num_syllables", "hal_frequency", "part_of_speech"].forEach(function(field) {
-                      let cell = document.createElement("td");
-                      cell.textContent = word[field];
-                      row.appendChild(cell);
-                    });
-                    rows.push(row);
-                  });
-                } else {
-                  rows = data.message;
-                }
-                document.querySelector("#results tbody").replaceChildren(...rows);
-              });
-            } else {
-              console.error("error!");
+        document
+          .querySelector("#ipa-buttons")
+          .addEventListener("click", function (event) {
+            if (event.target.nodeName === "BUTTON") {
+              lastFocused.value += event.target.textContent;
+              lastFocused.focus();
             }
           });
-        });
+
+        // Search
+        document
+          .querySelector("#search-button")
+          .addEventListener("click", function (event) {
+            let query = [];
+            document
+              .querySelectorAll(".search-option input")
+              .forEach(function (input) {
+                query.push(input.id + "=" + input.value);
+              });
+            fetch(
+              "http://localhost:7878/search?" + encodeURI(query.join("&"))
+            ).then(function (response) {
+              if (response.ok) {
+                response.json().then(function (data) {
+                  queryData = data.words;
+                  let rows = [];
+                  if (data.success) {
+                    data.words.forEach(function (word) {
+                      let row = document.createElement("tr");
+                      [
+                        "spelling",
+                        "transcription",
+                        "stress",
+                        "num_syllables",
+                        "hal_frequency",
+                        "part_of_speech",
+                      ].forEach(function (field) {
+                        let cell = document.createElement("td");
+                        cell.textContent = word[field];
+                        row.appendChild(cell);
+                      });
+                      rows.push(row);
+                    });
+                  } else {
+                    rows = data.message;
+                  }
+                  document
+                    .querySelector("#results tbody")
+                    .replaceChildren(...rows);
+                });
+              } else {
+                console.error("error!");
+              }
+            });
+          });
 
         // Export
-        document.querySelector("#export-data").addEventListener('click', function(event) {
-          var element = document.createElement('a');
-          element.style = 'display: none';
-          document.body.appendChild(element);
-          output = queryData.map(function(row) {
-            return fields.map(field => row[field]).join(",");
-          }).join("\n");
-          const blob = new Blob([output], { type: 'text/csv' }),
-            url = URL.createObjectURL(blob);
+        document
+          .querySelector("#export-data")
+          .addEventListener("click", function (event) {
+            var element = document.createElement("a");
+            element.style = "display: none";
+            document.body.appendChild(element);
+            output = queryData
+              .map(function (row) {
+                return fields.map((field) => row[field]).join(",");
+              })
+              .join("\n");
+            const blob = new Blob([output], { type: "text/csv" }),
+              url = URL.createObjectURL(blob);
 
-          element.href = url;
-          element.download = "out.csv";
-          element.click();
-          URL.revokeObjectURL(url);
-          element.parentElement.removeChild(element);
-        });
+            element.href = url;
+            element.download = "out.csv";
+            element.click();
+            URL.revokeObjectURL(url);
+            element.parentElement.removeChild(element);
+          });
 
         // Import
         let uploadInput = document.querySelector("#upload");
         let importButton = document.querySelector("#import");
-        uploadInput.addEventListener('change', function(event) {
-          importButton.removeAttribute('disabled');
+        uploadInput.addEventListener("change", function (event) {
+          importButton.removeAttribute("disabled");
         });
 
-        importButton.addEventListener('click', function(event) {
+        importButton.addEventListener("click", function (event) {
           let message = { header: "", message: "" };
-          uploadInput.files[0].text().then(function(text) {
+          uploadInput.files[0].text().then(function (text) {
             let passwordInput = document.querySelector("#password");
-            fetch("/update?password=" + encodeURI(passwordInput.value), { method: "POST", body: text }).then(function(response) { 
+            fetch("/update?password=" + encodeURI(passwordInput.value), {
+              method: "POST",
+              body: text,
+            }).then(function (response) {
               if (response.status === 403) {
-                message = { header: "Incorrect password", message: "The password you entered is incorrect." }
+                message = {
+                  header: "Incorrect password",
+                  message: "The password you entered is incorrect.",
+                };
               } else if (!response.ok) {
-                message = { header: "Error", message: "There was an error processing your request." }
+                message = {
+                  header: "Error",
+                  message: "There was an error processing your request.",
+                };
               }
-              response.json().then(function (data) {
-                message = { header: data.success ? "Success" : "Error", message: data.message };
-              }).catch(function(error) {}).finally(function() {
-                document.querySelectorAll(".window").forEach(function(element) {
-                  element.style.display = 'none';
+              response
+                .json()
+                .then(function (data) {
+                  message = {
+                    header: data.success ? "Success" : "Error",
+                    message: data.message,
+                  };
+                })
+                .catch(function (error) {})
+                .finally(function () {
+                  document
+                    .querySelectorAll(".window")
+                    .forEach(function (element) {
+                      element.style.display = "none";
+                    });
+                  let messageWindow = document.querySelector("#message");
+                  messageWindow.querySelector(".controls span").textContent =
+                    message.header;
+                  messageWindow.querySelector(".content").textContent =
+                    message.message;
+                  messageWindow.style.display = "block";
                 });
-                let messageWindow = document.querySelector("#message");
-                messageWindow.querySelector(".controls span").textContent = message.header;
-                messageWindow.querySelector(".content").textContent = message.message;
-                messageWindow.style.display = 'block';
-              });
             });
           });
         });
