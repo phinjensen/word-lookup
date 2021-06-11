@@ -1,0 +1,15 @@
+[package]
+name = "word_lookup"
+version = "0.1.0"
+authors = ["Phineas Jensen <phin@zayda.net>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4.19"
+httparse = "1.4.0"
+percent-encoding = "2.1.0"
+rusqlite = { version = "0.25.0", features = ["load_extension"] }
+serde = { version = "1.0.125", features = ["derive"] }
+serde_json = "1.0.64"
