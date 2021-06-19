@@ -13,6 +13,7 @@ use percent_encoding::percent_decode_str;
 use rusqlite::{params_from_iter, Connection, LoadExtensionGuard, ToSql, Transaction};
 use serde::Serialize;
 
+#[derive(Debug)]
 enum HTTPError {
     BadRequest,
     NotFound,
@@ -51,6 +52,7 @@ struct Query {
     part_of_speech: Option<String>,
 }
 
+#[derive(Debug)]
 struct RequestData<'a> {
     stream: &'a TcpStream,
     conn: &'a mut Connection,
@@ -123,25 +125,26 @@ fn handle_connection(stream: &mut TcpStream, conn: &mut Connection) -> Result<St
     let mut request = RequestData::new(stream, conn);
 
     if let Ok(bytes_read) = request.stream.read(&mut request.buffer) {
-        request.total_read += bytes_read;
         let mut headers = [httparse::EMPTY_HEADER; 16];
         let mut req = httparse::Request::new(&mut headers);
         let bytes_string = bytes_read.to_string();
-        request.length = str::from_utf8(
-            req.headers
-                .iter()
-                .find(|h| h.name == "Content-Length")
-                .unwrap_or(&httparse::Header {
-                    name: "Content-Length",
-                    value: bytes_string.to_string().as_bytes(),
-                })
-                .value,
-        )
-        .unwrap_or_else(|_| bytes_string.as_str())
-        .parse()
-        .unwrap();
 
-        if let Ok(_) = req.parse(&request.buffer) {
+        if let Ok(body_start) = req.parse(&request.buffer) {
+            request.length = str::from_utf8(
+                req.headers
+                    .iter()
+                    .find(|h| h.name == "Content-Length")
+                    .unwrap_or(&httparse::Header {
+                        name: "Content-Length",
+                        value: bytes_string.to_string().as_bytes(),
+                    })
+                    .value,
+            )
+            .unwrap_or_else(|_| bytes_string.as_str())
+            .parse()
+            .unwrap();
+            request.total_read = body_start.unwrap();
+            request.length += request.total_read;
             let path = req.path.unwrap_or("/");
             let (path, query) = match path.split_once('?') {
                 None => (path, ""),
@@ -172,7 +175,6 @@ fn handle_connection(stream: &mut TcpStream, conn: &mut Connection) -> Result<St
                     response = Some(result);
                 }
             } else if method == "POST" && path == "/update" {
-                println!("{:?}", query);
                 if let Some(mut password_i) = query.find("password=") {
                     // index is the index of the password plus the length of "password="
                     password_i += 9;
@@ -212,8 +214,12 @@ fn update_database(
         .truncate(true);
     let mut file = &common_options.open("upload.txt")?;
 
-    let mut end = request.buffer.len();
+    let mut end = request.length;
+    if end > 1024 {
+        end = 1024;
+    }
     file.write(&request.buffer[request.total_read..end])?;
+    request.total_read = end;
     while request.total_read < request.length {
         let bytes_read = request.stream.read(&mut request.buffer)?;
         request.total_read += bytes_read;
@@ -221,12 +227,12 @@ fn update_database(
         file.write(&request.buffer[..end])?;
     }
 
-    file.seek(SeekFrom::Start(0))?;
+    file.seek(SeekFrom::Start(0)).unwrap();
     let file_reader = BufReader::new(file);
 
-    let transaction = request.conn.transaction()?;
+    let transaction = request.conn.transaction().unwrap();
 
-    insert_lines(file_reader, &transaction)?;
+    insert_lines(file_reader, &transaction).unwrap();
 
     transaction.commit()?;
 

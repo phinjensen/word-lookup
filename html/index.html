@@ -45,6 +45,16 @@
         padding: 8px;
       }
 
+      th.ascending::after {
+        content: '🡹';
+        margin-left: 8px;
+      }
+
+      th.descending::after {
+        content: '🡳';
+        margin-left: 8px;
+      }
+
       #content {
         flex: 0 1 auto;
         display: flex;
@@ -282,12 +292,12 @@
         <table>
           <thead>
             <tr>
-              <th>Orthography</th>
-              <th>Transcription</th>
-              <th>Stress</th>
-              <th>Syllables</th>
-              <th>Frequency</th>
-              <th>Part(s) of speech</th>
+              <th data-sort="spelling">Orthography</th>
+              <th data-sort="transcription">Transcription</th>
+              <th data-sort="stress">Stress</th>
+              <th data-sort="num_syllables">Syllables</th>
+              <th data-sort="hal_frequency">Frequency</th>
+              <th data-sort="part_of_speech">Part(s) of speech</th>
             </tr>
           </thead>
           <tbody>
@@ -446,6 +456,49 @@
           "hal_frequency_log",
         ];
 
+        let sort_order = [
+          { field: "spelling", descending: false },
+        ];
+
+        function update_sort() {
+          document.querySelectorAll('th').forEach(function (element) {
+            let match = sort_order.find(function(sort) { return element.dataset.sort === sort.field });
+            console.log(element.dataset, match);
+            if (match) {
+              element.classList.add(match.descending ? 'descending' : 'ascending');
+            } else {
+              element.classList.remove('descending', 'ascending');
+            }
+          });
+          insert_words();
+        }
+
+        document.querySelectorAll('th').forEach(function (element) {
+          element.addEventListener('click', function() {
+            let match = sort_order.findIndex(function(sort) { return element.dataset.sort === sort.field });
+            if (match > -1) {
+              if (sort_order[match].descending) {
+                sort_order.splice(match, 1)
+              } else {
+                sort_order[match].descending = true;
+              }
+            } else {
+              sort_order.push({ field: element.dataset.sort, descending: false });
+            }
+            update_sort();
+          });
+        });
+        
+        function sort_words(a, b) {
+          for (let sort of sort_order) {
+            let field = sort.field;
+            let reverse = sort.descending ? -1 : 1;
+            if (a[field] > b[field]) return 1 * reverse;
+            else if (a[field] < b[field]) return -1 * reverse;
+          }
+          return 0;
+        }
+
         // Windows
         function startDragging(event) {
           this.parentNode.dataset.dragging = "true";
@@ -512,6 +565,30 @@
           });
 
         // Search
+        function insert_words() {
+          let rows = [];
+          queryData.sort(sort_words);
+          queryData.forEach(function (word) {
+            let row = document.createElement("tr");
+            [
+              "spelling",
+              "transcription",
+              "stress",
+              "num_syllables",
+              "hal_frequency",
+              "part_of_speech",
+            ].forEach(function (field) {
+              let cell = document.createElement("td");
+              cell.textContent = word[field];
+              row.appendChild(cell);
+            });
+            rows.push(row);
+          });
+          document
+            .querySelector("#results tbody")
+            .replaceChildren(...rows);
+        }
+
         document
           .querySelector("#search-button")
           .addEventListener("click", function (event) {
@@ -527,30 +604,13 @@
               if (response.ok) {
                 response.json().then(function (data) {
                   queryData = data.words;
-                  let rows = [];
                   if (data.success) {
-                    data.words.forEach(function (word) {
-                      let row = document.createElement("tr");
-                      [
-                        "spelling",
-                        "transcription",
-                        "stress",
-                        "num_syllables",
-                        "hal_frequency",
-                        "part_of_speech",
-                      ].forEach(function (field) {
-                        let cell = document.createElement("td");
-                        cell.textContent = word[field];
-                        row.appendChild(cell);
-                      });
-                      rows.push(row);
-                    });
+                    update_sort();
                   } else {
-                    rows = data.message;
+                    document
+                      .querySelector("#results tbody")
+                      .replaceChildren(data.message);
                   }
-                  document
-                    .querySelector("#results tbody")
-                    .replaceChildren(...rows);
                 });
               } else {
                 console.error("error!");
@@ -588,6 +648,7 @@
         });
 
         importButton.addEventListener("click", function (event) {
+          event.preventDefault();
           let message = { header: "", message: "" };
           uploadInput.files[0].text().then(function (text) {
             let passwordInput = document.querySelector("#password");
