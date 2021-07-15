@@ -1,0 +1,1 @@
+This is now a simple CGI binary, which should be built and put into a folder, along with a dictionary file called 'elpdic', into the webserver's designated CGI folder. Minified HTML can be created using minify (`npm install -g minify && minify index.max.html > index.html`). Remember to use eslint on the JavaScript (which may require moving it outside of HTML) before minifying.
