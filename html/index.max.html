@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Word Lookup</title>
+    <style>
+      html {
+        font-size: 14px;
+        font-family: "IBM Plex Sans", "DejaVu Sans", sans-serif;
+      }
+
+      body {
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        flex-flow: column;
+      }
+
+      #page-header {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #111111;
+        width: 100%;
+        flex: 0 0 48px;
+      }
+
+      #page-header > * {
+        margin-left: 8px;
+      }
+
+      h2 {
+        font-size: 1.3rem;
+      }
+
+      p {
+        line-height: 1.2;
+      }
+
+      code {
+        line-height: 1.2;
+      }
+
+      th,
+      td {
+        padding: 8px;
+      }
+
+      th.ascending::after {
+        content: '🡹';
+        margin-left: 8px;
+      }
+
+      th.descending::after {
+        content: '🡳';
+        margin-left: 8px;
+      }
+
+      #content {
+        flex: 0 1 auto;
+        display: flex;
+        flex-flow: row;
+        overflow: auto;
+        height: 100%;
+      }
+
+      #sidebar {
+        flex: 0 0 370px;
+        border-right: 1px solid #111111;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 8px;
+        box-sizing: border-box;
+        align-content: flex-start;
+        overflow: auto;
+      }
+
+      #search-options {
+        width: 100%;
+      }
+
+      .search-option {
+        width: 100%;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .search-option > label {
+        text-align: right;
+        width: 35%;
+      }
+
+      #results {
+        overflow: auto;
+        width: 100%;
+      }
+
+      #results > table {
+        width: 100%;
+        border-spacing: 0;
+      }
+
+      #results > table tr:nth-child(even) {
+        background-color: #eae9e9;
+      }
+
+      #results * {
+        text-align: left;
+      }
+
+      #regex-reference td:nth-child(1) {
+        padding-left: 0;
+      }
+
+      .window {
+        position: absolute;
+        top: 139px;
+        left: 379px;
+        border: 1px solid black;
+        border-radius: 4px;
+        background-color: white;
+        display: none;
+      }
+
+      .window header {
+        cursor: default;
+        width: 100%;
+        text-align: center;
+        user-select: none;
+        padding: 12px 0;
+        border-bottom: 1px solid black;
+      }
+
+      .window header a {
+        position: absolute;
+        top: 0;
+        right: 0;
+        text-decoration: none;
+        color: black;
+        padding: 12px;
+      }
+
+      .window .content {
+        padding: 4px;
+      }
+
+      #ipa-input {
+        width: 404px;
+      }
+
+      #ipa-input #ipa-buttons {
+        display: flex;
+        flex-flow: row wrap;
+        align-content: flex-start;
+      }
+
+      #ipa-input button {
+        box-sizing: border-box;
+        border: 1px solid lightgray;
+        border-radius: 4px;
+        width: 32px;
+        height: 32px;
+        padding: 4px;
+        margin: 2px;
+      }
+
+      #import-data {
+        width: 420px;
+        left: 50%;
+        top: 50%;
+        -webkit-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+      }
+
+      #import-data .content {
+        padding-top: 0;
+        padding: 8px;
+      }
+
+      #message {
+        left: 50%;
+        top: 50%;
+        -webkit-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+      }
+    </style>
+  </head>
+  <body>
+    <header id="page-header">
+      <button class="open-window" data-window="import-data" id="open-import">
+        Import Data
+      </button>
+      <button id="export-data">Export Results</button>
+      <button class="open-window" data-window="ipa-input" id="open-ipa">
+        IPA Character Input
+      </button>
+    </header>
+    <div id="content">
+      <section id="sidebar">
+        <button>&lt;&lt; hide</button>
+        <div id="search-options">
+          <h2>Search Options</h2>
+          <div class="search-option">
+            <label for="orthography">Orthography</label>
+            <input type="text" required id="orthography" name="orthography" />
+          </div>
+          <div class="search-option">
+            <label for="transcription">Transcription</label>
+            <input
+              type="text"
+              required
+              id="transcription"
+              name="transcription"
+            />
+          </div>
+          <div class="search-option">
+            <label for="syllables"># of syllables</label>
+            <input type="text" id="syllables" name="syllables" />
+          </div>
+          <div class="search-option">
+            <label for="stress">Stress pattern</label>
+            <input type="text" id="stress" name="stress" />
+          </div>
+          <div class="search-option">
+            <label for="minfrequency">Min. frequency</label>
+            <input type="text" id="minfrequency" name="minfrequency" />
+          </div>
+          <div class="search-option">
+            <label for="maxfrequency">Max. frequency</label>
+            <input type="text" id="maxfrequency" name="maxfrequency" />
+          </div>
+          <div class="search-option">
+            <label for="pos">Part of speech</label>
+            <input type="text" id="pos" name="pos" />
+          </div>
+          <button id="search-button">Search</button>
+        </div>
+        <div id="regex-reference">
+          <h2>Regular Expressions</h2>
+          <p>
+            Regular expressions can be used in the orthography, transcription,
+            and stress fields.
+          </p>
+          <table>
+            <tr>
+              <td><code>^</code></td>
+              <td>match the beginning of a string</td>
+            </tr>
+            <tr>
+              <td><code>$</code></td>
+              <td>match the end of a string</td>
+            </tr>
+            <tr>
+              <td><code>.</code></td>
+              <td>match any character</td>
+            </tr>
+            <tr>
+              <td><code>a*</code></td>
+              <td>
+                match a sequence of zero or more of the character <code>a</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>a+</code></td>
+              <td>
+                match a sequence of one or more of the character <code>a</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>a?</code></td>
+              <td>match zero or one of the character <code>a</code></td>
+            </tr>
+            <tr>
+              <td><code>de|abc</code></td>
+              <td>
+                match either the sequence <code>de</code> <b>or</b> the
+                sequecence <code>abc</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>(abc)*</code></td>
+              <td>
+                match zero or more instances of the sequence <code>abc</code>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </section>
+      <section id="results">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="spelling">Orthography</th>
+              <th data-sort="transcription">Transcription</th>
+              <th data-sort="stress">Stress</th>
+              <th data-sort="num_syllables">Syllables</th>
+              <th data-sort="hal_frequency">Frequency</th>
+              <th data-sort="part_of_speech">Part(s) of speech</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>No results.</td>
+
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+    <div class="window" id="ipa-input">
+      <header>
+        <span>IPA Character Input</span>
+        <div class="controls">
+          <a href="#" class="close-button">X</a>
+        </div>
+      </header>
+      <div class="content" id="ipa-buttons">
+        <button>ɑ</button>
+        <button>æ</button>
+        <button>ɐ</button>
+        <button>ɑ̃</button>
+        <button>β</button>
+        <button>ɓ</button>
+        <button>ç</button>
+        <button>ɕ</button>
+        <button>ð</button>
+        <button>d͡ʒ</button>
+        <button>ɖ</button>
+        <button>ɗ</button>
+        <button>ə</button>
+        <button>ɚ</button>
+        <button>ɵ</button>
+        <button>ɘ</button>
+        <button>ɛ</button>
+        <button>ɜ</button>
+        <button>ɝ</button>
+        <button>ɛ̃</button>
+        <button>ɠ</button>
+        <button>ɢ</button>
+        <button>ħ</button>
+        <button>ɦ</button>
+        <button>ɥ</button>
+        <button>ɧ</button>
+        <button>ʜ</button>
+        <button>ɪ</button>
+        <button>ɨ</button>
+        <button>ɪ̈</button>
+        <button>ʝ</button>
+        <button>ɟ</button>
+        <button>ɫ</button>
+        <button>ɭ</button>
+        <button>ɬ</button>
+        <button>ʟ</button>
+        <button>ɮ</button>
+        <button>ɱ</button>
+        <button>ŋ</button>
+        <button>ɲ</button>
+        <button>ɳ</button>
+        <button>ɴ</button>
+        <button>ɔ</button>
+        <button>œ</button>
+        <button>ɒ</button>
+        <button>ɔ̃</button>
+        <button>ø</button>
+        <button>ɸ</button>
+        <button>ɾ</button>
+        <button>ɹ</button>
+        <button>ʁ</button>
+        <button>ʀ</button>
+        <button>ɻ</button>
+        <button>ɽ</button>
+        <button>ʃ</button>
+        <button>ʂ</button>
+        <button>θ</button>
+        <button>t͡ʃ</button>
+        <button>t͡s</button>
+        <button>ʈ</button>
+        <button>ʊ</button>
+        <button>ʉ</button>
+        <button>ʌ</button>
+        <button>ʋ</button>
+        <button>ɯ</button>
+        <button>ʍ</button>
+        <button>χ</button>
+        <button>ɣ</button>
+        <button>ʎ</button>
+        <button>ʏ</button>
+        <button>ɤ</button>
+        <button>ʒ</button>
+        <button>ʐ</button>
+        <button>ʑ</button>
+        <button>ʔ</button>
+        <button>ʕ</button>
+      </div>
+    </div>
+    <div class="window" id="import-data">
+      <header>
+        <span>Import updated data</span>
+        <div class="controls">
+          <a href="#" class="close-button">X</a>
+        </div>
+      </header>
+      <div class="content">
+        <p>
+          To update the database, make changes to the original file and upload
+          it to the same folder as <pre>word_lookup</pre> with the filename <pre>elpdic</pre>.
+        </p>
+      </div>
+    </div>
+    <div class="window" id="message">
+      <header>
+        <div class="controls">
+          <span></span>
+          <a href="#" class="close-button">X</a>
+        </div>
+      </header>
+      <div class="content"></div>
+    </div>
+    <script>
+      window.onload = function () {
+        var queryData = [];
+        var fields = [
+          "spelling",
+          "transcription",
+          "num_syllables",
+          "stress",
+          "spelling_morph",
+          "transcription_morph",
+          "num_morphemes",
+          "part_of_speech",
+          "hal_frequency",
+          "hal_frequency_log",
+        ];
+
+        var sort_order = [{ field: "spelling", descending: false }];
+
+        function update_sort() {
+          document.querySelectorAll("th").forEach(function (element) {
+            var match = sort_order.find(function (sort) {
+              return element.dataset.sort === sort.field;
+            });
+            if (match) {
+              element.classList.add(match.descending ? "descending" : "ascending");
+            } else {
+              element.classList.remove("descending", "ascending");
+            }
+          });
+          insert_words();
+        }
+
+        document.querySelectorAll("th").forEach(function (element) {
+          element.addEventListener("click", function () {
+            var match = sort_order.findIndex(function (sort) {
+              return element.dataset.sort === sort.field;
+            });
+            if (match > -1) {
+              if (sort_order[match].descending) {
+                sort_order.splice(match, 1);
+              } else {
+                sort_order[match].descending = true;
+              }
+            } else {
+              sort_order.push({ field: element.dataset.sort, descending: false });
+            }
+            update_sort();
+          });
+        });
+
+        function sort_words(a, b) {
+          for (var i = 0; i < sort_order.length; i++) {
+            var sort = sort_order[i];
+            var field = sort.field;
+            var reverse = sort.descending ? -1 : 1;
+            if (a[field] > b[field]) return 1 * reverse;
+            else if (a[field] < b[field]) return -1 * reverse;
+          }
+          return 0;
+        }
+
+        // Windows
+        function startDragging() {
+          this.parentNode.dataset.dragging = "true";
+        }
+        function stopDragging() {
+          delete this.parentNode.dataset.dragging;
+        }
+
+        document.querySelectorAll(".window").forEach(function (element) {
+          var header = element.querySelector("header");
+          header.addEventListener("mousedown", startDragging);
+          header.addEventListener("mouseup", stopDragging);
+          element.style.top = window.getComputedStyle(element).top;
+          element.style.left = window.getComputedStyle(element).left;
+        });
+
+        document.addEventListener(
+          "mousemove",
+          function (event) {
+            document.querySelectorAll(".window").forEach(function (element) {
+              if (element.dataset.dragging) {
+                element.style.top =
+                  String(element.offsetTop + event.movementY) + "px";
+                element.style.left =
+                  String(element.offsetLeft + event.movementX) + "px";
+              }
+            });
+          },
+          true
+        );
+
+        document.querySelectorAll(".open-window").forEach(function (element) {
+          element.addEventListener("click", function () {
+            document.getElementById(element.dataset.window).style.display = "block";
+          });
+        });
+
+        document.querySelectorAll(".window").forEach(function (element) {
+          element
+            .querySelector(".close-button")
+            .addEventListener("click", function () {
+              element.style.display = "none";
+            });
+        });
+
+        // IPA Input
+        var lastFocused = document.querySelector("#orthography");
+        document.querySelectorAll(".search-option input").forEach(function (input) {
+          input.addEventListener("focus", function (event) {
+            lastFocused = event.target;
+          });
+        });
+
+        document
+          .querySelector("#ipa-buttons")
+          .addEventListener("click", function (event) {
+            if (event.target.nodeName === "BUTTON") {
+              lastFocused.value += event.target.textContent;
+              lastFocused.focus();
+            }
+          });
+
+        // Search
+        function insert_words() {
+          var rows = [];
+          queryData.sort(sort_words);
+          queryData.forEach(function (word) {
+            var row = document.createElement("tr");
+            [
+              "spelling",
+              "transcription",
+              "stress",
+              "num_syllables",
+              "hal_frequency",
+              "part_of_speech",
+            ].forEach(function (field) {
+              var cell = document.createElement("td");
+              cell.textContent = word[field];
+              row.appendChild(cell);
+            });
+            rows.push(row);
+          });
+          document.querySelector("#results tbody").replaceChildren.apply(null, rows);
+        }
+
+        document
+          .querySelector("#search-button")
+          .addEventListener("click", function () {
+            var query = [];
+            document
+              .querySelectorAll(".search-option input")
+              .forEach(function (input) {
+                query.push(input.id + "=" + input.value);
+              });
+            fetch("/word_lookup?" + encodeURI(query.join("&"))).then(function (
+              response
+            ) {
+              if (response.ok) {
+                response.json().then(function (data) {
+                  queryData = data.words;
+                  if (data.success) {
+                    update_sort();
+                  } else {
+                    document
+                      .querySelector("#results tbody")
+                      .replaceChildren(data.message);
+                  }
+                });
+              } else {
+                console.error("error!");
+              }
+            });
+          });
+
+        // Export
+        document.querySelector("#export-data").addEventListener("click", function () {
+          var element = document.createElement("a");
+          element.style = "display: none";
+          document.body.appendChild(element);
+          var output = queryData
+            .map(function (row) {
+              return fields
+                .map(function (field) {
+                  return row[field];
+                })
+                .join(",");
+            })
+            .join("\n");
+          var blob = new Blob([output], { type: "text/csv" }),
+            url = URL.createObjectURL(blob);
+
+          element.href = url;
+          element.download = "out.csv";
+          element.click();
+          URL.revokeObjectURL(url);
+          element.parentElement.removeChild(element);
+        });
+
+        // Import
+        var uploadInput = document.querySelector("#upload");
+        var importButton = document.querySelector("#import");
+        uploadInput.addEventListener("change", function () {
+          importButton.removeAttribute("disabled");
+        });
+      };
+    </script>
+  </body>
+</html>
