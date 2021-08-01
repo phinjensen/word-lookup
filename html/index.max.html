@@ -5,6 +5,7 @@
     <title>Word Lookup</title>
     <style>
       html {
+        background: #f7f7f7;
         font-size: 14px;
         font-family: "IBM Plex Sans", "DejaVu Sans", sans-serif;
       }
@@ -14,6 +15,20 @@
         margin: 0;
         display: flex;
         flex-flow: column;
+        color: #111;
+      }
+
+      button {
+        padding: 8px;
+        background: #ede6e3;
+        border: none;
+        border-bottom: 4px solid #c7b1a8;
+        border-radius: 8px;
+      }
+
+      button:active {
+        border-bottom-width: 2px;
+        margin-top: 2px;
       }
 
       #page-header {
@@ -29,6 +44,8 @@
       }
 
       h2 {
+        color: #3e5641;
+        border-bottom: 4px solid #3e5641;
         font-size: 1.3rem;
       }
 
@@ -43,6 +60,19 @@
       th,
       td {
         padding: 8px;
+      }
+
+      th {
+        background: #fafafa;
+        position: sticky;
+        top: 0;
+        color: #334746;
+        border-bottom: 2px solid #334746;
+        cursor: pointer;
+      }
+
+      th.limit {
+        width: 200px;
       }
 
       th.ascending::after {
@@ -64,12 +94,12 @@
       }
 
       #sidebar {
-        flex: 0 0 370px;
+        flex: 0 0 350px;
         border-right: 1px solid #111111;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        padding: 8px;
+        padding: 0 8px;
         box-sizing: border-box;
         align-content: flex-start;
         overflow: auto;
@@ -84,12 +114,20 @@
         margin-bottom: 8px;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-end;
       }
 
       .search-option > label {
         text-align: right;
-        width: 35%;
+        flex: 1 0 35%;
+      }
+
+      .search-option > input {
+        margin-left: 8px;
+        background: #fafafa;
+        padding: 4px;
+        border: 1px solid;
+        border-radius: 8px;
       }
 
       #results {
@@ -103,7 +141,7 @@
       }
 
       #results > table tr:nth-child(even) {
-        background-color: #eae9e9;
+        background-color: #ede6e3;
       }
 
       #results * {
@@ -147,7 +185,7 @@
       }
 
       #ipa-input {
-        width: 404px;
+        width: 260px;
       }
 
       #ipa-input #ipa-buttons {
@@ -158,8 +196,6 @@
 
       #ipa-input button {
         box-sizing: border-box;
-        border: 1px solid lightgray;
-        border-radius: 4px;
         width: 32px;
         height: 32px;
         padding: 4px;
@@ -177,6 +213,10 @@
       #import-data .content {
         padding-top: 0;
         padding: 8px;
+      }
+
+      .code {
+        font-family: "IBM Plex Mono", "DejaVu Sans Mono", monospace;
       }
 
       #message {
@@ -199,7 +239,6 @@
     </header>
     <div id="content">
       <section id="sidebar">
-        <button>&lt;&lt; hide</button>
         <div id="search-options">
           <h2>Search Options</h2>
           <div class="search-option">
@@ -216,24 +255,36 @@
             />
           </div>
           <div class="search-option">
-            <label for="syllables"># of syllables</label>
-            <input type="text" id="syllables" name="syllables" />
+            <label for="num_syllables"># of syllables</label>
+            <input type="text" id="num_syllables" name="num_syllables" />
           </div>
           <div class="search-option">
             <label for="stress">Stress pattern</label>
             <input type="text" id="stress" name="stress" />
           </div>
           <div class="search-option">
-            <label for="minfrequency">Min. frequency</label>
-            <input type="text" id="minfrequency" name="minfrequency" />
+            <label for="morph_orthography">Morphological parse (orthography)</label>
+            <input type="text" id="morph_orthography" name="morph_orthography" />
           </div>
           <div class="search-option">
-            <label for="maxfrequency">Max. frequency</label>
-            <input type="text" id="maxfrequency" name="maxfrequency" />
+            <label for="morph_transcription">Morphological parse (transcription)</label>
+            <input type="text" id="morph_transcription" name="morph_transcription" />
           </div>
           <div class="search-option">
-            <label for="pos">Part of speech</label>
-            <input type="text" id="pos" name="pos" />
+            <label for="num_morphemes"># of morphemes</label>
+            <input type="text" id="num_morphemes" name="num_morphemes" />
+          </div>
+          <div class="search-option">
+            <label for="min_frequency">Min. frequency</label>
+            <input type="text" id="min_frequency" name="min_frequency" />
+          </div>
+          <div class="search-option">
+            <label for="max_frequency">Max. frequency</label>
+            <input type="text" id="max_frequency" name="max_frequency" />
+          </div>
+          <div class="search-option">
+            <label for="part_of_speech">Part of speech</label>
+            <input type="text" id="part_of_speech" name="part_of_speech" />
           </div>
           <button id="search-button">Search</button>
         </div>
@@ -292,10 +343,13 @@
         <table>
           <thead>
             <tr>
-              <th data-sort="spelling">Orthography</th>
+              <th data-sort="orthography">Orthography</th>
               <th data-sort="transcription">Transcription</th>
-              <th data-sort="stress">Stress</th>
               <th data-sort="num_syllables">Syllables</th>
+              <th data-sort="stress">Stress</th>
+              <th class="limit" data-sort="morph_orthography">Morphological parse (orthography)</th>
+              <th class="limit" data-sort="morph_transcription">Morphological parse (transcription)</th>
+              <th data-sort="num_morphemes">Morphemes</th>
               <th data-sort="hal_frequency">Frequency</th>
               <th data-sort="part_of_speech">Part(s) of speech</th>
             </tr>
@@ -318,82 +372,20 @@
         </div>
       </header>
       <div class="content" id="ipa-buttons">
-        <button>ɑ</button>
         <button>æ</button>
-        <button>ɐ</button>
-        <button>ɑ̃</button>
-        <button>β</button>
-        <button>ɓ</button>
-        <button>ç</button>
-        <button>ɕ</button>
         <button>ð</button>
-        <button>d͡ʒ</button>
-        <button>ɖ</button>
-        <button>ɗ</button>
-        <button>ə</button>
-        <button>ɚ</button>
-        <button>ɵ</button>
-        <button>ɘ</button>
+        <button>ŋ</button>
+        <button>ǝ</button>
+        <button>ɑ</button>
+        <button>ɔ</button>
         <button>ɛ</button>
         <button>ɜ</button>
-        <button>ɝ</button>
-        <button>ɛ̃</button>
-        <button>ɠ</button>
-        <button>ɢ</button>
-        <button>ħ</button>
-        <button>ɦ</button>
-        <button>ɥ</button>
-        <button>ɧ</button>
-        <button>ʜ</button>
         <button>ɪ</button>
-        <button>ɨ</button>
-        <button>ɪ̈</button>
-        <button>ʝ</button>
-        <button>ɟ</button>
-        <button>ɫ</button>
-        <button>ɭ</button>
-        <button>ɬ</button>
-        <button>ʟ</button>
-        <button>ɮ</button>
-        <button>ɱ</button>
-        <button>ŋ</button>
-        <button>ɲ</button>
-        <button>ɳ</button>
-        <button>ɴ</button>
-        <button>ɔ</button>
-        <button>œ</button>
-        <button>ɒ</button>
-        <button>ɔ̃</button>
-        <button>ø</button>
-        <button>ɸ</button>
-        <button>ɾ</button>
-        <button>ɹ</button>
-        <button>ʁ</button>
-        <button>ʀ</button>
-        <button>ɻ</button>
-        <button>ɽ</button>
         <button>ʃ</button>
-        <button>ʂ</button>
-        <button>θ</button>
-        <button>t͡ʃ</button>
-        <button>t͡s</button>
-        <button>ʈ</button>
         <button>ʊ</button>
-        <button>ʉ</button>
         <button>ʌ</button>
-        <button>ʋ</button>
-        <button>ɯ</button>
-        <button>ʍ</button>
-        <button>χ</button>
-        <button>ɣ</button>
-        <button>ʎ</button>
-        <button>ʏ</button>
-        <button>ɤ</button>
         <button>ʒ</button>
-        <button>ʐ</button>
-        <button>ʑ</button>
-        <button>ʔ</button>
-        <button>ʕ</button>
+        <button>θ</button>
       </div>
     </div>
     <div class="window" id="import-data">
@@ -406,7 +398,7 @@
       <div class="content">
         <p>
           To update the database, make changes to the original file and upload
-          it to the same folder as <pre>word_lookup</pre> with the filename <pre>elpdic</pre>.
+          it to the same folder as <span class="code">word_lookup.cgi</span> with the filename <span class="code">elpdic</span>.
         </p>
       </div>
     </div>
@@ -423,19 +415,19 @@
       window.onload = function () {
         var queryData = [];
         var fields = [
-          "spelling",
+          "orthography",
           "transcription",
           "num_syllables",
           "stress",
-          "spelling_morph",
-          "transcription_morph",
+          "morph_orthography",
+          "morph_transcription",
           "num_morphemes",
           "part_of_speech",
           "hal_frequency",
           "hal_frequency_log",
         ];
 
-        var sort_order = [{ field: "spelling", descending: false }];
+        var sort_order = [{ field: "orthography", descending: false }];
 
         function update_sort() {
           document.querySelectorAll("th").forEach(function (element) {
@@ -549,10 +541,13 @@
           queryData.forEach(function (word) {
             var row = document.createElement("tr");
             [
-              "spelling",
+              "orthography",
               "transcription",
-              "stress",
               "num_syllables",
+              "stress",
+              "morph_orthography",
+              "morph_transcription",
+              "num_morphemes",
               "hal_frequency",
               "part_of_speech",
             ].forEach(function (field) {
@@ -562,7 +557,8 @@
             });
             rows.push(row);
           });
-          document.querySelector("#results tbody").replaceChildren.apply(null, rows);
+          var body = document.querySelector("#results tbody");
+          body.replaceChildren.apply(body, rows);
         }
 
         document
@@ -617,14 +613,8 @@
           URL.revokeObjectURL(url);
           element.parentElement.removeChild(element);
         });
-
-        // Import
-        var uploadInput = document.querySelector("#upload");
-        var importButton = document.querySelector("#import");
-        uploadInput.addEventListener("change", function () {
-          importButton.removeAttribute("disabled");
-        });
       };
+      //# sourceURL=word_lookup.js
     </script>
   </body>
 </html>
