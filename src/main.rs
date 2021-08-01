@@ -1,5 +1,6 @@
+use std::error::Error;
 use std::fs::File;
-use std::io::{self, BufRead, BufReader};
+use std::io::{BufRead, BufReader};
 
 use cgi;
 use percent_encoding::percent_decode_str;
@@ -9,21 +10,14 @@ use serde::Serialize;
 cgi::cgi_main! { |request: cgi::Request| -> cgi::Response {
     if let Some(query) = request.uri().query() {
         let parsed_query = parse_query(query);
-        let result = match get_result(&parsed_query) {
-            Ok(words) => ResponseResult {
-                success: true,
-                message: None,
-                words,
-            },
-            Err(_) => ResponseResult {
-                success: false,
-                message: Some(String::from("Error fetching result.")),
-                words: Vec::new(),
-            },
-        };
-        match serde_json::to_string(&result) {
-            Err(_) => cgi::text_response(403, "Internal Error: Error serializing JSON"),
-            Ok(r) => cgi::text_response(200, &r)
+        match get_result(&parsed_query) {
+            Ok(words) => {
+                match serde_json::to_string(&words) {
+                    Err(_) => cgi::text_response(500, "Internal Error: Error serializing JSON"),
+                    Ok(r) => cgi::text_response(200, &r)
+                }
+            }
+            Err(err) => cgi::text_response(400, err.to_string())
         }
     } else {
         cgi::text_response(400, "word lookup requires query parameters")
@@ -101,34 +95,33 @@ fn parse_query(query: &str) -> Query {
     result
 }
 
-fn clean_regex(re: &str) -> Regex {
+fn clean_regex(re: &str) -> Result<Regex, regex::Error> {
     let re = re
-        .replace(r"\", r"\\")
         .replace('[', r"\[")
         .replace('{', r"\{")
         .replace(r"(?", r"(\?");
-    Regex::new(re.as_str()).unwrap()
+    Regex::new(re.as_str())
 }
 
-fn get_result(query: &Query) -> io::Result<Vec<Word>> {
+fn get_result(query: &Query) -> Result<Vec<Word>, Box<dyn Error>> {
     let dictionary = BufReader::new(File::open("elpdic")?);
     let mut result = Vec::new();
-    let orthography_regex = clean_regex(&query.orthography);
-    let transcription_regex = clean_regex(&query.transcription);
+    let orthography_regex = clean_regex(&query.orthography)?;
+    let transcription_regex = clean_regex(&query.transcription)?;
     let stress_regex = match &query.stress {
-        Some(stress) => Some(clean_regex(stress)),
-        None => None,
-    };
-    let pos_regex = match &query.part_of_speech {
-        Some(pos) => Some(clean_regex(pos)),
+        Some(stress) => Some(clean_regex(stress)?),
         None => None,
     };
     let morph_orthography_regex = match &query.morph_orthography {
-        Some(morph_orthography) => Some(clean_regex(morph_orthography)),
+        Some(morph_orthography) => Some(clean_regex(morph_orthography)?),
         None => None,
     };
     let morph_transcription_regex = match &query.morph_transcription {
-        Some(morph_transcription) => Some(clean_regex(morph_transcription)),
+        Some(morph_transcription) => Some(clean_regex(morph_transcription)?),
+        None => None,
+    };
+    let pos_regex = match &query.part_of_speech {
+        Some(pos) => Some(clean_regex(pos)?),
         None => None,
     };
     for line in dictionary.lines() {
