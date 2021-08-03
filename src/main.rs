@@ -2,7 +2,6 @@ use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-use cgi;
 use percent_encoding::percent_decode_str;
 use regex::Regex;
 use serde::Serialize;
@@ -72,7 +71,7 @@ fn parse_query(query: &str) -> Query {
         max_frequency: None,
         part_of_speech: None,
     };
-    for parameter in query.split("&") {
+    for parameter in query.split('&') {
         if let Some((key, value)) = parameter.split_once('=') {
             if let Ok(value) = percent_decode_str(value).decode_utf8() {
                 let value = value.to_string();
@@ -190,7 +189,7 @@ fn get_result(query: &Query) -> Result<Vec<Word>, Box<dyn Error>> {
 }
 
 fn string_or_none(string: String) -> Option<String> {
-    if string.len() > 0 {
+    if !string.is_empty() {
         return Some(string);
     }
     None
