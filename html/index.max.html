@@ -293,7 +293,7 @@
         <div id="regex-reference">
           <h2>Regular Expressions</h2>
           <p>
-            The following regular expression syntax can be used in the orthography, transcription, stress, morphological parse, and part of speech fields.
+          Regular expressions can be used in the orthography, transcription, stress, morphological parse, and part of speech fields. This means some special characters, may cause an error if used incorrectly. To match a literal character (such as <code>{</code>), put <code>\</code> before it. For more details, see the <a href="https://docs.rs/regex/1.5.4/regex/index.html#syntax">Rust regular expression syntax document</a>.
           </p>
           <table>
             <tr>
@@ -338,7 +338,6 @@
               </td>
             </tr>
           </table>
-          <p>For any of these special characters, precede it with a <code>\</code> to match the literal character, rather than the special effect. Note that doing this before an alphabetical character will likely have unintended consequences. For technical details: the search program uses Rust's <a href="https://docs.rs/regex/1.5.4/regex/index.html#syntax">regex library</a> but the character class, grouping flags, and any feature using <code>{}</code> are disabled.</p>
         </div>
       </section>
       <section id="results">
@@ -585,7 +584,7 @@
               .forEach(function (input) {
                 query.push(input.id + "=" + input.value);
               });
-            fetch("/word_lookup?" + encodeURI(query.join("&"))).then(function (
+            fetch("../cgi-bin/word_lookup.cgi?" + encodeURI(query.join("&"))).then(function (
               response
             ) {
               if (response.ok) {

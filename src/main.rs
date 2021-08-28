@@ -94,33 +94,25 @@ fn parse_query(query: &str) -> Query {
     result
 }
 
-fn clean_regex(re: &str) -> Result<Regex, regex::Error> {
-    let re = re
-        .replace('[', r"\[")
-        .replace('{', r"\{")
-        .replace(r"(?", r"(\?");
-    Regex::new(re.as_str())
-}
-
 fn get_result(query: &Query) -> Result<Vec<Word>, Box<dyn Error>> {
     let dictionary = BufReader::new(File::open("elpdic")?);
     let mut result = Vec::new();
-    let orthography_regex = clean_regex(&query.orthography)?;
-    let transcription_regex = clean_regex(&query.transcription)?;
+    let orthography_regex = Regex::new(&query.orthography)?;
+    let transcription_regex = Regex::new(&query.transcription)?;
     let stress_regex = match &query.stress {
-        Some(stress) => Some(clean_regex(stress)?),
+        Some(stress) => Some(Regex::new(stress)?),
         None => None,
     };
     let morph_orthography_regex = match &query.morph_orthography {
-        Some(morph_orthography) => Some(clean_regex(morph_orthography)?),
+        Some(morph_orthography) => Some(Regex::new(morph_orthography)?),
         None => None,
     };
     let morph_transcription_regex = match &query.morph_transcription {
-        Some(morph_transcription) => Some(clean_regex(morph_transcription)?),
+        Some(morph_transcription) => Some(Regex::new(morph_transcription)?),
         None => None,
     };
     let pos_regex = match &query.part_of_speech {
-        Some(pos) => Some(clean_regex(pos)?),
+        Some(pos) => Some(Regex::new(pos)?),
         None => None,
     };
     for line in dictionary.lines() {
